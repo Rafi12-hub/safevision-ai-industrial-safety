@@ -1,0 +1,19 @@
+# YOLO PPE Dataset Configuration for Mechanical Laboratory Safety Monitoring System
+# Dataset directories
+path: ./dataset
+train: images/train
+val: images/val
+test: images/val
+
+# Class definitions
+names:
+  0: person
+  1: safety_helmet
+  2: safety_cap
+  3: safety_shoes
+  4: no_helmet
+  5: no_safety_shoes
+
+# Metadata
+nc: 6
+description: Mechanical Lab and Industrial PPE Detection Dataset (Person, Helmet, Cap, Shoes, No Helmet, No Shoes)

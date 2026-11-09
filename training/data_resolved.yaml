@@ -1,0 +1,16 @@
+# YOLO PPE Dataset Configuration for Mechanical Laboratory Safety Monitoring System
+# Dataset directories
+path: 'C:/Users/windows/OneDrive/Desktop/personal mine/vvit/ai image processing system/dataset'
+train: images/train
+val: images/val
+test: images/val
+
+# Class definitions
+names:
+  0: person
+  1: safety_cap
+  2: safety_shoes
+
+# Metadata
+nc: 3
+description: Mechanical Engineering Laboratory PPE Compliance Dataset (Person, Safety Cap, Safety Shoes)

@@ -1,0 +1,14 @@
+# AI-Based Mechanical Lab & Industrial Worker Safety Monitoring System
+# Python Dependencies
+streamlit>=1.35.0
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+pandas>=2.2.0
+numpy>=1.26.0
+plotly>=5.20.0
+torch>=2.2.0
+torchvision>=0.17.0
+Pillow>=10.2.0
+pytest>=8.0.0
+click>=8.1.0
+
