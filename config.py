@@ -12,6 +12,7 @@ DATABASE_DIR = BASE_DIR / "database"
 DATABASE_PATH = DATABASE_DIR / "safety_records.db"
 RECORDS_DIR = BASE_DIR / "records"
 CSV_PATH = RECORDS_DIR / "safety_records.csv"
+WORKER_FACES_DIR = RECORDS_DIR / "worker_faces"
 MODELS_DIR = BASE_DIR / "models"
 MODEL_PATH = MODELS_DIR / "best.pt"
 DATASET_DIR = BASE_DIR / "dataset"
@@ -20,6 +21,7 @@ TRAINING_DIR = BASE_DIR / "training"
 # Ensure runtime directories exist
 DATABASE_DIR.mkdir(parents=True, exist_ok=True)
 RECORDS_DIR.mkdir(parents=True, exist_ok=True)
+WORKER_FACES_DIR.mkdir(parents=True, exist_ok=True)
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Application Metadata
@@ -78,6 +80,10 @@ HYSTERESIS_WINDOW = 4           # Responsive consecutive frames for temporal sta
 RECORD_COOLDOWN_SECONDS = 15.0  # Session deduplication cooldown
 ENABLE_FACE_SCANNER = True      # High-speed OpenCV facial detector & scanning reticle
 
+
+# Face Recognition Defaults
+DEFAULT_FACE_MATCH_THRESHOLD = 0.55  # Minimum cosine similarity for worker identification
+ENABLE_FACE_RECOGNITION = True       # Display identified worker's real name upon scanning
 
 # Workplace Safety Policy Options
 ALLOW_SAFETY_CAP = True         # Allow approved safety cap as alternative to hard helmet in lab

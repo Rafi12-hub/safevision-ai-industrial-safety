@@ -26,9 +26,10 @@ def compute_iou(boxA: List[float], boxB: List[float]) -> float:
 
 
 class WorkerSession:
-    def __init__(self, raw_id: int, initial_box: List[float]):
+    def __init__(self, raw_id: int, initial_box: List[float], worker_name: Optional[str] = None):
         self.raw_id = raw_id
         self.worker_id = f"Worker {raw_id:03d}"
+        self.worker_name = worker_name
         self.bbox = initial_box
         self.first_seen = time.time()
         self.last_seen = time.time()
@@ -67,10 +68,12 @@ class WorkerTracker:
                 if not det.get("track_id"):
                     self.next_raw_id += 1
 
-                session = WorkerSession(raw_id, det["bbox"])
+                w_name = det.get("worker_name")
+                session = WorkerSession(raw_id, det["bbox"], worker_name=w_name)
                 self.sessions[raw_id] = session
                 det["raw_id"] = raw_id
                 det["worker_id"] = session.worker_id
+                det["worker_name"] = w_name or session.worker_id
                 assigned_workers.append(det)
             return assigned_workers
 
@@ -100,8 +103,13 @@ class WorkerTracker:
                 rid = existing_ids[s_idx]
                 det = detected_persons[d_idx]
 
+                # Update recognized worker name if newly observed
+                if det.get("worker_name"):
+                    self.sessions[rid].worker_name = det.get("worker_name")
+
                 det["raw_id"] = rid
                 det["worker_id"] = self.sessions[rid].worker_id
+                det["worker_name"] = self.sessions[rid].worker_name or self.sessions[rid].worker_id
                 self.sessions[rid].bbox = det["bbox"]
                 self.sessions[rid].last_seen = now
                 self.sessions[rid].frames_seen += 1
@@ -120,10 +128,12 @@ class WorkerTracker:
                 raw_id = self.next_raw_id
                 self.next_raw_id += 1
 
-                session = WorkerSession(raw_id, det["bbox"])
+                w_name = det.get("worker_name")
+                session = WorkerSession(raw_id, det["bbox"], worker_name=w_name)
                 self.sessions[raw_id] = session
                 det["raw_id"] = raw_id
                 det["worker_id"] = session.worker_id
+                det["worker_name"] = w_name or session.worker_id
                 matched_dets.add(idx)
 
         # Increment missed frames on unobserved workers

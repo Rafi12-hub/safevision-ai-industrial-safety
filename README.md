@@ -50,8 +50,14 @@ The system automatically classifies workers with distinct visual indicators (**G
 - Assigns non-biometric sequential identifiers (`Worker 001`, `Worker 002`).
 - State-machine session tracking ensures stationary workers in front of a camera do not create duplicate database records.
 
-### 6. Modern Glassmorphic UI (White, Cyber Pink, Mint Green & Electric Yellow)
-- Aesthetic mixed gradient interface with iridescent glowing cards, cyber badges, transparent Plotly analytics, and dual monitoring modes (Live Webcam + Instant Photo Upload Scanner).
+### 6. Facial Biometric Enrollment & Real-Time Identity Recognition
+- **Offline 1,764-d HOG Descriptor**: Lightweight illumination-invariant facial feature extraction running in ~2ms per face on standard CPU.
+- **Biometric Personnel Database**: Enrolls laboratory workers with ID, name, role, and department. Automatically scans and recognizes personnel on the live camera stream.
+- **Cosine Similarity Matching**: Computes biometric distance to verify identities and classify recognized personnel vs unregistered guests.
+
+### 7. Warm Industrial Luxury UI & Left-Side Vertical Navigation Only
+- **Premium Industrial Aesthetic**: Styled with Sage Green (`#E3E8D9`), Terracotta (`#C66B48`), Warm Ivory (`#F4EFE6`), Cream (`#FFFCF7`), and Dark Olive Charcoal (`#343B34`).
+- **Left-Side Vertical Navigation**: Clean 9-module vertical sidebar menu with active state highlights, live telemetry status, and responsive cream dashboard cards.
 
 ---
 
@@ -202,44 +208,54 @@ The script will automatically verify Python, validate model weights, initialize 
 
 ## 🖥️ Dashboard Features & Walkthrough
 
-The web dashboard is organized into **7 specialized operational modules**:
+The web dashboard is organized into **8 specialized operational command modules**:
 
-### 1. 📊 Industrial Safety Overview
+### 1. 📊 Executive Industrial Dashboard
 - **5 High-Impact Metric Cards**: Total Monitored Workers, Safe Workers, Unsafe Workers, Unknown/Occluded, and Overall Compliance Percentage.
 - **Recent Violations Log**: Real-time table showcasing recent non-compliant detections with timestamps and violation rationales.
 - **Equipment Compliance Breakdown**: Interactive horizontal bar chart tracking Helmet vs. Safety Shoe compliance rates.
 
-### 2. 📹 Real-Time Live Monitoring & Facial Scanner
+### 2. 📹 Real-Time Live Monitoring & Facial Recognition
 - **Dual Operating Modes**:
-  - **Live Webcam Mode**: Live camera feed with bounding boxes, cybernetic face targeting reticles, real-time FPS counter, and worker status cards.
+  - **Live Webcam Mode**: Live camera feed with bounding boxes, cybernetic face targeting reticles, real-time FPS counter, and recognized worker identity cards.
   - **Instant Photo Scanner**: Upload laboratory photos or snapshot images for immediate PPE and face scanning without needing an active webcam.
-- **Live Status Panel**: Dynamic cards displaying worker ID, facial scan confirmation, helmet status, shoe status, and detailed safety rationale.
-- **Manual Scenario Simulator**: Quick-action injector buttons to verify all core detection states on demand.
+- **On-Screen Worker Name Display**: Scanned faces are matched against registered biometrics and displayed directly on the HUD (e.g. `[👤 Rajesh Sharma (Senior Lathe Operator)]`).
+- **Live Status Panel**: Dynamic cards displaying worker name, role, department, facial scan confirmation, helmet status, shoe status, and safety rationale.
 
-### 3. 📋 Worker Safety Verification Records
-- Searchable and filterable database audit table.
+### 3. 👤 Worker Directory & Face Registration (New)
+- **Personnel Directory**: View all registered workers with profile photos, worker IDs, roles, and departments.
+- **Biometric Enrollment Engine**: Register new workers using:
+  - 📸 **Live Webcam Snapshot** (Instant browser camera capture)
+  - 📁 **Profile Photo Upload** (JPG, PNG)
+- **Biometric Encoding**: Automatically extracts illumination-invariant 1764-dimensional HOG facial descriptors and stores them in SQLite.
+- **Instant Face Matcher Tester**: Test similarity scores against enrolled profiles with real-time cosine confidence percentages.
+
+### 4. 📋 Worker Safety Verification Records
+- Searchable and filterable database audit table with Worker IDs and Full Names.
 - Filter by status (`SAFE`, `NOT_SAFE`, `UNKNOWN`) and custom date ranges.
 - One-click CSV export button.
 
-### 4. 🚨 Safety Violations History
+### 5. 🚨 Safety Violations Incident Log
 - Detailed breakdown of safety infractions.
 - Metrics highlighting missing helmet vs. missing shoe incidents.
 - Export violation logs directly to CSV for industrial compliance audits.
 
-### 5. 📈 Compliance Analytics
+### 6. 📈 Compliance Analytics & Trends
 - **Safe vs. Unsafe Worker Ratio**: Donut chart with status distribution.
 - **Violation Breakdown by PPE Item**: Categorical breakdown of violations.
 - **Daily Safety Violations Trend**: Spline line chart tracking daily incident counts.
 - **Daily Compliance Rate Trend**: Gradient area chart monitoring lab compliance over time.
 
-### 6. 📑 Compliance Report Generator
+### 7. 📑 Audit Reports Generator
 - Formal industrial audit reports generated in three modes:
   - **Daily Report** (24-hour summary)
   - **Weekly Report** (Rolling 7-day summary)
   - **Monthly Report** (Calendar month audit)
 - Includes unique worker counts, overall compliance percentage, and full table records with downloadable CSV files.
 
-### 7. ⚙️ System & Model Settings
+### 8. 🔧 System & Face AI Settings
+- Configurable **Face Match Cosine Similarity Threshold** (0.30 to 0.85).
+- Real-time Face Recognition display toggle.
 - Interactive sliders for **Confidence Threshold** (0.10 to 0.90) and **IoU NMS Overlap** (0.20 to 0.80).
 - **Workplace Safety Policy Toggle**: Option to accept safety caps as an approved alternative to hard helmets.
 - **Webcam Device Selector**: Select between multiple USB webcams.

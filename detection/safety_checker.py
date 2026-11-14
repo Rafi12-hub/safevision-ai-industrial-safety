@@ -181,25 +181,40 @@ class SafetyVerifier:
         frame_width: int,
         frame_height: int,
         face_box: Optional[List[float]] = None,
-        faces: Optional[List[Dict[str, Any]]] = None
+        faces: Optional[List[Dict[str, Any]]] = None,
+        worker_name: Optional[str] = None,
+        role: Optional[str] = None,
+        department: Optional[str] = None,
+        is_recognized: bool = False
     ) -> Dict[str, Any]:
         """
         Evaluate full safety verification logic for a detected worker:
         - Checks boundary visibility.
         - Spatially associates worn equipment.
-        - Identifies and associates human face scanning data.
+        - Identifies and associates human face scanning data and real worker identity.
         - Smooths via hysteresis buffer.
         """
         # Associate face box if provided or extract matching face
         matched_face = face_box
-        if matched_face is None and faces:
+        eff_name = worker_name or worker_id
+        eff_role = role or "Technician"
+        eff_dept = department or "Mechanical Lab"
+        eff_is_rec = is_recognized
+
+        if faces:
             px1, py1, px2, py2 = person_box
             for f in faces:
                 fb = f["bbox"]
                 fcx = (fb[0] + fb[2]) / 2.0
                 fcy = (fb[1] + fb[3]) / 2.0
                 if px1 <= fcx <= px2 and py1 <= fcy <= (py1 + 0.45 * (py2 - py1)):
-                    matched_face = fb
+                    if matched_face is None:
+                        matched_face = fb
+                    if not eff_is_rec and f.get("is_recognized"):
+                        eff_name = f.get("full_name", eff_name)
+                        eff_role = f.get("role", eff_role)
+                        eff_dept = f.get("department", eff_dept)
+                        eff_is_rec = True
                     break
 
         # Step 1: Visibility check
@@ -270,6 +285,10 @@ class SafetyVerifier:
 
         return {
             "worker_id": worker_id,
+            "worker_name": eff_name,
+            "role": eff_role,
+            "department": eff_dept,
+            "is_recognized": eff_is_rec,
             "person_box": person_box,
             "person_confidence": round(person_confidence, 3),
             "face_box": matched_face,
@@ -343,17 +362,17 @@ def draw_face_scanner(
     cv2.line(img, (cx, cy - 7), (cx, cy + 7), color, 1)
 
     # 3. Floating Face Scan pill
-    pill_w = min(175, fx2 - fx1 + 40)
-    pill_h = 20
+    pill_w = max(180, int(len(label) * 9.5))
+    pill_h = 22
     by1 = max(38, fy1 - pill_h - 4)
     cv2.rectangle(img, (fx1, by1), (fx1 + pill_w, by1 + pill_h), (15, 23, 42), -1)
     cv2.rectangle(img, (fx1, by1), (fx1 + pill_w, by1 + pill_h), color, 1)
     cv2.putText(
         img,
         label,
-        (fx1 + 6, by1 + 14),
+        (fx1 + 6, by1 + 15),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.38,
+        0.40,
         (255, 255, 255),
         1,
         cv2.LINE_AA
@@ -407,12 +426,16 @@ def annotate_frame(
 
         # 2. Worker ID & Status Pill Header
         worker_id = ev.get("worker_id", "Worker ???")
-        header_text = f"{worker_id}: {status}"
+        worker_name = ev.get("worker_name") or worker_id
+        is_rec = ev.get("is_recognized", False)
+        role = ev.get("role", "Staff")
+        header_text = f"{worker_name}: {status}"
         badge_h = 28
+        badge_w = max(240, int(len(header_text) * 11))
         hy1 = max(38, y1 - badge_h)
         hy2 = max(hy1 + badge_h, y1)
 
-        cv2.rectangle(annotated, (x1, hy1), (min(w, x1 + 240), hy2), hdr_bg, -1)
+        cv2.rectangle(annotated, (x1, hy1), (min(w, x1 + badge_w), hy2), hdr_bg, -1)
         cv2.putText(
             annotated,
             header_text,
@@ -499,11 +522,17 @@ def annotate_frame(
             fcx = (face_b[0] + face_b[2]) / 2.0
             fcy = (face_b[1] + face_b[3]) / 2.0
             drawn_face_centers.append((fcx, fcy))
+            if is_rec:
+                f_label = f"ID: {worker_name} ({role})"
+                f_color = (129, 185, 16)  # Mint Green for verified registered personnel
+            else:
+                f_label = f"FACE: {worker_name}"
+                f_color = (200, 72, 236)  # Cyber Pink for guest/unregistered
             draw_face_scanner(
                 annotated,
                 face_b,
-                label=f"FACE: {worker_id}",
-                color=(200, 72, 236)
+                label=f_label,
+                color=f_color
             )
 
     # 6. Render any additional unassociated faces in scene
@@ -514,11 +543,17 @@ def annotate_frame(
             fcy = (fb[1] + fb[3]) / 2.0
             already_drawn = any(abs(fcx - dc[0]) < 25 and abs(fcy - dc[1]) < 25 for dc in drawn_face_centers)
             if not already_drawn:
+                if f.get("is_recognized"):
+                    f_label = f"ID: {f.get('full_name')} ({f.get('role', 'Staff')})"
+                    f_color = (129, 185, 16)
+                else:
+                    f_label = "HUMAN FACE: SCANNING"
+                    f_color = (200, 72, 236)
                 draw_face_scanner(
                     annotated,
                     fb,
-                    label="HUMAN FACE: SCANNING",
-                    color=(200, 72, 236)
+                    label=f_label,
+                    color=f_color
                 )
 
     # 7. Modern Top HUD Bar with Mixed Gradient Accents

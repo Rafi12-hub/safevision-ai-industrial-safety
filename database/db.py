@@ -57,12 +57,35 @@ def init_db() -> None:
             )
         """)
 
+        # Migration: ensure worker_name exists in safety_records
+        try:
+            cursor.execute("ALTER TABLE safety_records ADD COLUMN worker_name TEXT DEFAULT 'Unregistered Worker'")
+        except sqlite3.OperationalError:
+            pass
+
         # Indexes for fast querying & analytics
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_date ON safety_records (date);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_status ON safety_records (overall_status);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_worker ON safety_records (worker_id);")
 
-        # 2. System Settings Table
+        # 2. Registered Workers Table (with real name, role, department & face encoding)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS registered_workers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                worker_id TEXT UNIQUE NOT NULL,
+                full_name TEXT NOT NULL,
+                role TEXT NOT NULL,
+                department TEXT NOT NULL,
+                photo_path TEXT,
+                face_encoding BLOB,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_workers_id ON registered_workers (worker_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_workers_name ON registered_workers (full_name);")
+
+        # 3. System Settings Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS system_settings (
                 key TEXT PRIMARY KEY,
@@ -79,7 +102,9 @@ def init_db() -> None:
             ("camera_index", str(config.DEFAULT_CAMERA_INDEX)),
             ("allow_safety_cap", "true" if config.ALLOW_SAFETY_CAP else "false"),
             ("hysteresis_frames", str(config.HYSTERESIS_WINDOW)),
-            ("cooldown_seconds", str(config.RECORD_COOLDOWN_SECONDS))
+            ("cooldown_seconds", str(config.RECORD_COOLDOWN_SECONDS)),
+            ("face_match_threshold", str(config.DEFAULT_FACE_MATCH_THRESHOLD)),
+            ("enable_face_recognition", "true" if config.ENABLE_FACE_RECOGNITION else "false")
         ]
 
         now_str = datetime.now().isoformat()
@@ -91,8 +116,13 @@ def init_db() -> None:
 
         conn.commit()
 
-    # Seed baseline records if database is freshly initialized
+    # Seed baseline records and worker profiles if database is freshly initialized
     seed_initial_records_if_empty()
+    try:
+        from .workers import seed_initial_workers_if_empty
+        seed_initial_workers_if_empty()
+    except Exception:
+        pass
 
 
 def seed_initial_records_if_empty() -> None:

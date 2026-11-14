@@ -119,16 +119,17 @@ class SafetyDetector:
             self.status_message = f"Failed to load detection model: {str(e)}"
             return False
 
-    def detect(self, frame: np.ndarray) -> Dict[str, Any]:
+    def detect(self, frame: np.ndarray, face_recognizer: Optional[Any] = None) -> Dict[str, Any]:
         """
-        Run real-time CPU object detection on a BGR video frame.
+        Run real-time CPU object detection and facial recognition on a BGR video frame.
         Returns categorized detection dictionaries:
-        - persons: List of worker full body detections
+        - persons: List of worker body detections with associated face identities
         - helmets: List of detected safety helmets
         - caps: List of detected safety caps
         - shoes: List of detected safety shoes
-        - no_helmets: List of explicit no-helmet detections (if class exists)
-        - no_shoes: List of explicit no-shoe detections (if class exists)
+        - no_helmets: List of explicit no-helmet detections
+        - no_shoes: List of explicit no-shoe detections
+        - faces: List of scanned faces with recognized worker names
         """
         if self.model is None:
             return {
@@ -212,8 +213,9 @@ class SafetyDetector:
                     if cls_id == 0 or "person" in cls_name:
                         persons.append(det_item)
 
-        # 3. Facial Scanning: detect human faces using high-speed cascade
+        # 3. Facial Scanning & Real-Time Identity Recognition
         faces: List[Dict[str, Any]] = []
+        frame_h, frame_w = frame.shape[:2]
         if self.face_cascade is not None and frame is not None and frame.size > 0:
             try:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -224,16 +226,33 @@ class SafetyDetector:
                     minSize=(36, 36)
                 )
                 for (fx, fy, fw, fh) in detected_faces:
-                    faces.append({
-                        "bbox": [float(fx), float(fy), float(fx + fw), float(fy + fh)],
+                    fx1, fy1 = max(0, int(fx)), max(0, int(fy))
+                    fx2, fy2 = min(frame_w, int(fx + fw)), min(frame_h, int(fy + fh))
+                    face_crop = frame[fy1:fy2, fx1:fx2]
+
+                    # Match identity against registered worker biometrics
+                    identity = None
+                    if face_recognizer is not None and face_crop.size > 0:
+                        try:
+                            identity = face_recognizer.identify_face(face_crop)
+                        except Exception:
+                            pass
+
+                    face_info = {
+                        "bbox": [float(fx1), float(fy1), float(fx2), float(fy2)],
                         "confidence": 0.95,
-                        "name": "human_face"
-                    })
+                        "name": "human_face",
+                        "identity": identity,
+                        "full_name": identity["full_name"] if identity else "Unregistered Worker",
+                        "role": identity.get("role", "Technician") if identity else "Technician",
+                        "department": identity.get("department", "Mechanical Lab") if identity else "Mechanical Lab",
+                        "is_recognized": identity.get("is_recognized", False) if identity else False
+                    }
+                    faces.append(face_info)
             except Exception:
                 pass
 
         # 4. Synthesize person detection if face is detected but full-body YOLO missed sitting worker
-        frame_h, frame_w = frame.shape[:2]
         for f in faces:
             fb = f["bbox"]
             fcx = (fb[0] + fb[2]) / 2.0
@@ -248,6 +267,11 @@ class SafetyDetector:
                 if pb[0] <= fcx <= pb[2] and pb[1] <= fcy <= pb[3]:
                     enclosed = True
                     p["face_box"] = fb
+                    if f.get("is_recognized"):
+                        p["worker_name"] = f.get("full_name")
+                        p["role"] = f.get("role")
+                        p["department"] = f.get("department")
+                        p["is_recognized"] = True
                     break
 
             if not enclosed:
@@ -263,6 +287,10 @@ class SafetyDetector:
                     "class_id": 0,
                     "name": "person",
                     "face_box": fb,
+                    "worker_name": f.get("full_name"),
+                    "role": f.get("role"),
+                    "department": f.get("department"),
+                    "is_recognized": f.get("is_recognized", False),
                     "is_synthesized": True
                 })
 

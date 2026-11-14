@@ -1,19 +1,38 @@
-id,record_id,worker_id,date,time,timestamp,helmet_status,safety_shoe_status,overall_status,confidence,violation_details,head_visible,feet_visible
-18,REC-20261109194609-WORKER001-696,Worker 001,2026-11-09,19:46:09,2026-11-09T19:46:09.696970,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0
-17,REC-20261109192405-WORKER001-465,Worker 001,2026-11-09,19:24:05,2026-11-09T19:24:05.465355,WORN,WORN,SAFE,0.96,Full compliance verified: Safety helmet and safety shoes detected,1,1
-16,REC-20261108103406-WORKER001-149,Worker 001,2026-11-08,10:34:06,2026-11-08T10:34:06.149904,WORN,WORN,SAFE,0.96,Full compliance verified: Safety helmet and safety shoes detected,1,1
-15,REC-20261108-Worker012,Worker 012,2026-11-08,07:29:36,2026-11-08T07:29:36.104218,WORN,UNCLEAR,UNKNOWN,0.52,Feet partially out of bottom camera frame,1,0
-14,REC-20261108-Worker011,Worker 011,2026-11-08,07:33:36,2026-11-08T07:33:36.104218,MISSING,MISSING,NOT_SAFE,0.92,Critical violation: Missing helmet and shoes,1,1
-13,REC-20261108-Worker010,Worker 010,2026-11-08,07:37:36,2026-11-08T07:37:36.104218,WORN,WORN,SAFE,0.95,Full PPE compliance verified,1,1
-12,REC-20261108-Worker003,Worker 003,2026-11-08,08:05:36,2026-11-08T08:05:36.104218,WORN,WORN,SAFE,0.97,Full PPE compliance verified,1,1
-11,REC-20261107-Worker009,Worker 009,2026-11-07,07:41:36,2026-11-07T07:41:36.104218,WORN,MISSING,NOT_SAFE,0.89,Safety violation: Missing required safety shoes,1,1
-10,REC-20261107-Worker008,Worker 008,2026-11-07,07:45:36,2026-11-07T07:45:36.104218,UNCLEAR,WORN,UNKNOWN,0.58,Head partially truncated by camera boundary,0,1
-9,REC-20261107-Worker002,Worker 002,2026-11-07,08:09:36,2026-11-07T08:09:36.104218,WORN,WORN,SAFE,0.94,Full PPE compliance verified,1,1
-8,REC-20261106-Worker007,Worker 007,2026-11-06,07:49:36,2026-11-06T07:49:36.104218,MISSING,WORN,NOT_SAFE,0.87,Safety violation: Missing safety helmet,1,1
-7,REC-20261106-Worker006,Worker 006,2026-11-06,07:53:36,2026-11-06T07:53:36.104218,WORN,WORN,SAFE,0.92,Full PPE compliance verified,1,1
-6,REC-20261106-Worker001,Worker 001,2026-11-06,08:13:36,2026-11-06T08:13:36.104218,WORN,WORN,SAFE,0.96,Full PPE compliance verified,1,1
-5,REC-20261105-Worker005,Worker 005,2026-11-05,07:57:36,2026-11-05T07:57:36.104218,MISSING,MISSING,NOT_SAFE,0.93,Critical violation: Missing both helmet and safety shoes,1,1
-4,REC-20261105-Worker004,Worker 004,2026-11-05,08:01:36,2026-11-05T08:01:36.104218,MISSING,WORN,NOT_SAFE,0.88,Safety violation: Missing safety helmet,1,1
-3,REC-20261105-Worker003,Worker 003,2026-11-05,08:05:36,2026-11-05T08:05:36.104218,WORN,WORN,SAFE,0.94,Full PPE compliance verified,1,1
-2,REC-20261104-Worker002,Worker 002,2026-11-04,08:09:36,2026-11-04T08:09:36.104218,WORN,MISSING,NOT_SAFE,0.91,Safety violation: Missing required safety shoes,1,1
-1,REC-20261104-Worker001,Worker 001,2026-11-04,08:13:36,2026-11-04T08:13:36.104218,WORN,WORN,SAFE,0.95,Full PPE compliance: Approved helmet & steel-toe shoes,1,1
+id,record_id,worker_id,date,time,timestamp,helmet_status,safety_shoe_status,overall_status,confidence,violation_details,head_visible,feet_visible,worker_name
+37,REC-20261114112306-WORKER001-871,Worker 001,2026-11-14,11:23:06,2026-11-14T11:23:06.871098,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+36,REC-20261114112257-WORKER003-991,Worker 003,2026-11-14,11:22:57,2026-11-14T11:22:57.991915,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+35,REC-20261114112246-WORKER001-438,Worker 001,2026-11-14,11:22:46,2026-11-14T11:22:46.438604,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+34,REC-20261114112242-WORKER002-183,Worker 002,2026-11-14,11:22:42,2026-11-14T11:22:42.183955,UNCLEAR,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame; Worker too distant from camera for reliable PPE check,0,0,Mahammad Rafi
+33,REC-20261114112226-WORKER001-407,Worker 001,2026-11-14,11:22:26,2026-11-14T11:22:26.407610,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+32,REC-20261113193307-WORKER002-268,Worker 002,2026-11-13,19:33:07,2026-11-13T19:33:07.268027,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+31,REC-20261113193247-WORKER002-062,Worker 002,2026-11-13,19:32:47,2026-11-13T19:32:47.062654,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+30,REC-20261113193226-WORKER002-901,Worker 002,2026-11-13,19:32:26,2026-11-13T19:32:26.901375,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Mahammad Rafi
+29,REC-20261113193025-WORKER001-745,Worker 001,2026-11-13,19:30:25,2026-11-13T19:30:25.745340,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+28,REC-20261110142202-WORKER001-636,Worker 001,2026-11-10,14:22:02,2026-11-10T14:22:02.636219,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+27,REC-20261110142142-WORKER001-591,Worker 001,2026-11-10,14:21:42,2026-11-10T14:21:42.591831,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+26,REC-20261110135332-WORKER003-716,Worker 003,2026-11-10,13:53:32,2026-11-10T13:53:32.716939,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+25,REC-20261110135311-WORKER003-043,Worker 003,2026-11-10,13:53:11,2026-11-10T13:53:11.043967,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+24,REC-20261110135303-WORKER007-416,Worker 007,2026-11-10,13:53:03,2026-11-10T13:53:03.416138,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+23,REC-20261110135250-WORKER003-822,Worker 003,2026-11-10,13:52:50,2026-11-10T13:52:50.822505,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+22,REC-20261110135001-WORKER003-214,Worker 003,2026-11-10,13:50:01,2026-11-10T13:50:01.214988,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+21,REC-20261110134851-WORKER006-893,Worker 006,2026-11-10,13:48:51,2026-11-10T13:48:51.893303,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+20,REC-20261110134834-WORKER003-296,Worker 003,2026-11-10,13:48:34,2026-11-10T13:48:34.296803,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+19,REC-20261110134827-WORKER001-344,Worker 001,2026-11-10,13:48:27,2026-11-10T13:48:27.344804,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+18,REC-20261109194609-WORKER001-696,Worker 001,2026-11-09,19:46:09,2026-11-09T19:46:09.696970,MISSING,UNCLEAR,UNKNOWN,1.0,UNKNOWN: Feet partially out of bottom camera frame,1,0,Unregistered Worker
+17,REC-20261109192405-WORKER001-465,Worker 001,2026-11-09,19:24:05,2026-11-09T19:24:05.465355,WORN,WORN,SAFE,0.96,Full compliance verified: Safety helmet and safety shoes detected,1,1,Unregistered Worker
+16,REC-20261108103406-WORKER001-149,Worker 001,2026-11-08,10:34:06,2026-11-08T10:34:06.149904,WORN,WORN,SAFE,0.96,Full compliance verified: Safety helmet and safety shoes detected,1,1,Unregistered Worker
+15,REC-20261108-Worker012,Worker 012,2026-11-08,07:29:36,2026-11-08T07:29:36.104218,WORN,UNCLEAR,UNKNOWN,0.52,Feet partially out of bottom camera frame,1,0,Unregistered Worker
+14,REC-20261108-Worker011,Worker 011,2026-11-08,07:33:36,2026-11-08T07:33:36.104218,MISSING,MISSING,NOT_SAFE,0.92,Critical violation: Missing helmet and shoes,1,1,Unregistered Worker
+13,REC-20261108-Worker010,Worker 010,2026-11-08,07:37:36,2026-11-08T07:37:36.104218,WORN,WORN,SAFE,0.95,Full PPE compliance verified,1,1,Unregistered Worker
+12,REC-20261108-Worker003,Worker 003,2026-11-08,08:05:36,2026-11-08T08:05:36.104218,WORN,WORN,SAFE,0.97,Full PPE compliance verified,1,1,Unregistered Worker
+11,REC-20261107-Worker009,Worker 009,2026-11-07,07:41:36,2026-11-07T07:41:36.104218,WORN,MISSING,NOT_SAFE,0.89,Safety violation: Missing required safety shoes,1,1,Unregistered Worker
+10,REC-20261107-Worker008,Worker 008,2026-11-07,07:45:36,2026-11-07T07:45:36.104218,UNCLEAR,WORN,UNKNOWN,0.58,Head partially truncated by camera boundary,0,1,Unregistered Worker
+9,REC-20261107-Worker002,Worker 002,2026-11-07,08:09:36,2026-11-07T08:09:36.104218,WORN,WORN,SAFE,0.94,Full PPE compliance verified,1,1,Unregistered Worker
+8,REC-20261106-Worker007,Worker 007,2026-11-06,07:49:36,2026-11-06T07:49:36.104218,MISSING,WORN,NOT_SAFE,0.87,Safety violation: Missing safety helmet,1,1,Unregistered Worker
+7,REC-20261106-Worker006,Worker 006,2026-11-06,07:53:36,2026-11-06T07:53:36.104218,WORN,WORN,SAFE,0.92,Full PPE compliance verified,1,1,Unregistered Worker
+6,REC-20261106-Worker001,Worker 001,2026-11-06,08:13:36,2026-11-06T08:13:36.104218,WORN,WORN,SAFE,0.96,Full PPE compliance verified,1,1,Unregistered Worker
+5,REC-20261105-Worker005,Worker 005,2026-11-05,07:57:36,2026-11-05T07:57:36.104218,MISSING,MISSING,NOT_SAFE,0.93,Critical violation: Missing both helmet and safety shoes,1,1,Unregistered Worker
+4,REC-20261105-Worker004,Worker 004,2026-11-05,08:01:36,2026-11-05T08:01:36.104218,MISSING,WORN,NOT_SAFE,0.88,Safety violation: Missing safety helmet,1,1,Unregistered Worker
+3,REC-20261105-Worker003,Worker 003,2026-11-05,08:05:36,2026-11-05T08:05:36.104218,WORN,WORN,SAFE,0.94,Full PPE compliance verified,1,1,Unregistered Worker
+2,REC-20261104-Worker002,Worker 002,2026-11-04,08:09:36,2026-11-04T08:09:36.104218,WORN,MISSING,NOT_SAFE,0.91,Safety violation: Missing required safety shoes,1,1,Unregistered Worker
+1,REC-20261104-Worker001,Worker 001,2026-11-04,08:13:36,2026-11-04T08:13:36.104218,WORN,WORN,SAFE,0.95,Full PPE compliance: Approved helmet & steel-toe shoes,1,1,Unregistered Worker

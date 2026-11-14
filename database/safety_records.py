@@ -20,7 +20,8 @@ def add_safety_record(
     confidence: float,
     violation_details: str = "",
     head_visible: bool = True,
-    feet_visible: bool = True
+    feet_visible: bool = True,
+    worker_name: str = "Unregistered Worker"
 ) -> str:
     """
     Commit a verified safety check event into SQLite and auto-sync records CSV.
@@ -38,12 +39,12 @@ def add_safety_record(
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO safety_records (
-                record_id, worker_id, date, time, timestamp,
+                record_id, worker_id, worker_name, date, time, timestamp,
                 helmet_status, safety_shoe_status, overall_status,
                 confidence, violation_details, head_visible, feet_visible
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            record_id, worker_id, date_str, time_str, timestamp_str,
+            record_id, worker_id, worker_name, date_str, time_str, timestamp_str,
             helmet_status, safety_shoe_status, overall_status,
             round(confidence, 4), violation_details,
             int(head_visible), int(feet_visible)
