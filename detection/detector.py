@@ -47,7 +47,7 @@ class SafetyDetector:
         self.last_inference_ms = 0.0
         self.classes = config.CLASSES
 
-        # Initialize high-speed facial scanner with robust multi-tier path resolution
+        # Initialize high-speed facial scanner with robust multi-tier path resolution and error immunity
         cascade_path = None
         local_model = Path(__file__).resolve().parent.parent / "models" / "haarcascade_frontalface_default.xml"
         if local_model.exists():
@@ -57,10 +57,20 @@ class SafetyDetector:
             if os.path.exists(cand):
                 cascade_path = cand
 
-        if cascade_path and os.path.exists(cascade_path):
-            self.face_cascade = cv2.CascadeClassifier(cascade_path)
-        else:
-            self.face_cascade = cv2.CascadeClassifier()
+        self.face_cascade = None
+        try:
+            if hasattr(cv2, "CascadeClassifier"):
+                if cascade_path and os.path.exists(cascade_path):
+                    self.face_cascade = cv2.CascadeClassifier(cascade_path)
+                else:
+                    self.face_cascade = cv2.CascadeClassifier()
+            elif hasattr(cv2, "objdetect") and hasattr(cv2.objdetect, "CascadeClassifier"):
+                if cascade_path and os.path.exists(cascade_path):
+                    self.face_cascade = cv2.objdetect.CascadeClassifier(cascade_path)
+                else:
+                    self.face_cascade = cv2.objdetect.CascadeClassifier()
+        except Exception:
+            self.face_cascade = None
 
         # Load weights
         self.load_model(model_path)

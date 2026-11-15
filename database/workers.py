@@ -125,7 +125,12 @@ def seed_initial_workers_if_empty() -> None:
     ]
 
     # Pre-generate sample profile avatar images
-    hog = cv2.HOGDescriptor((64, 64), (16, 16), (8, 8), (8, 8), 9)
+    hog = None
+    try:
+        if hasattr(cv2, "HOGDescriptor"):
+            hog = cv2.HOGDescriptor((64, 64), (16, 16), (8, 8), (8, 8), 9)
+    except Exception:
+        hog = None
 
     for wid, name, role, dept in demo_workers:
         # Create a stylized avatar image
@@ -144,7 +149,13 @@ def seed_initial_workers_if_empty() -> None:
         # Compute facial encoding
         gray = cv2.cvtColor(cv2.resize(avatar, (64, 64)), cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)
-        desc = hog.compute(gray).flatten()
+        if hog is not None and hasattr(hog, "compute"):
+            desc = hog.compute(gray).flatten()
+        else:
+            gx = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=1)
+            gy = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=1)
+            mag = cv2.magnitude(gx, gy)
+            desc = cv2.resize(mag, (42, 42)).flatten()
         norm = np.linalg.norm(desc)
         vec = desc / norm if norm > 0 else desc
         enc_bytes = vec.tobytes()

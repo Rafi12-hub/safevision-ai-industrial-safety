@@ -23,8 +23,13 @@ from database.workers import (
 class FaceRecognizer:
     def __init__(self, match_threshold: float = config.DEFAULT_FACE_MATCH_THRESHOLD):
         self.match_threshold = match_threshold
-        # Standard HOG descriptor: 64x64 window, 16x16 block, 8x8 block stride, 8x8 cell, 9 histogram bins -> 1764 features
-        self.hog = cv2.HOGDescriptor((64, 64), (16, 16), (8, 8), (8, 8), 9)
+        # Standard HOG descriptor with safe cloud initialization
+        self.hog = None
+        try:
+            if hasattr(cv2, "HOGDescriptor"):
+                self.hog = cv2.HOGDescriptor((64, 64), (16, 16), (8, 8), (8, 8), 9)
+        except Exception:
+            self.hog = None
         self.cached_workers: List[Dict[str, Any]] = []
         self.last_reload = 0.0
         self.reload_workers()
@@ -62,8 +67,14 @@ class FaceRecognizer:
             clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
             norm_gray = clahe.apply(gray)
 
-            # 4. Compute HOG gradient descriptor
-            desc = self.hog.compute(norm_gray).flatten().astype(np.float32)
+            # 4. Compute HOG gradient descriptor or gradient fallback
+            if self.hog is not None and hasattr(self.hog, "compute"):
+                desc = self.hog.compute(norm_gray).flatten().astype(np.float32)
+            else:
+                gx = cv2.Sobel(norm_gray, cv2.CV_32F, 1, 0, ksize=1)
+                gy = cv2.Sobel(norm_gray, cv2.CV_32F, 0, 1, ksize=1)
+                mag = cv2.magnitude(gx, gy)
+                desc = cv2.resize(mag, (42, 42)).flatten().astype(np.float32)
 
             # 5. L2 unit vector normalization
             norm = np.linalg.norm(desc)
