@@ -628,74 +628,41 @@ if "Executive Dashboard" in selected_module:
 # PAGE 2: LIVE AI MONITORING
 # =============================================================================
 elif "Live AI Monitoring" in selected_module:
-    # Clean Toolbar Controls
-    ctrl1, ctrl2, ctrl3, ctrl4 = st.columns([1.3, 1.3, 1.5, 1.9])
-
-    with ctrl1:
-        run_camera = st.toggle("Start Camera Stream", value=False, key="camera_toggle_btn")
-
-    with ctrl2:
-        capture_btn = st.button("Capture Snapshot", use_container_width=True)
-
-    with ctrl3:
-        cam_index = st.selectbox(
-            "Camera Device",
-            options=[0, 1, 2],
-            format_func=lambda x: f"Webcam Device {x}",
-            index=int(get_setting("camera_index", "0")),
-            label_visibility="collapsed"
-        )
-
-    with ctrl4:
-        st.markdown(
-            f"<div style='padding-top:0.4rem; font-size:0.86rem; color:#2C332C;'>Stream Status: <strong style='color:{'#2E7D32' if run_camera else '#6B736B'};'>{'● STREAMING LIVE' if run_camera else '○ CAMERA STANDBY'}</strong></div>",
-            unsafe_allow_html=True
-        )
-
+    feed_mode = st.radio(
+        "Camera Input Source",
+        [
+            "📸 Browser Device Camera (Recommended for Cloud / Mobile / Laptop)",
+            "💻 Local Hardware Camera (DirectShow / USB Workstation)",
+            "📁 Static Photo & Benchmark Inspection"
+        ],
+        horizontal=True,
+        key="live_monitoring_feed_mode"
+    )
     st.markdown("---")
 
-    video_col, status_col = st.columns([2.2, 1.1])
+    # -------------------------------------------------------------------------
+    # MODE 1: BROWSER DEVICE CAMERA (WORKS 100% ON STREAMLIT CLOUD & MOBILE)
+    # -------------------------------------------------------------------------
+    if feed_mode == "📸 Browser Device Camera (Recommended for Cloud / Mobile / Laptop)":
+        st.caption("Captures live video frames directly from your device webcam or phone camera through the web browser.")
 
-    with video_col:
-        video_placeholder = st.empty()
+        b_col1, b_col2 = st.columns([2.0, 1.1])
+        with b_col1:
+            cam_snap = st.camera_input("Capture frame from your device camera", key="cloud_browser_camera")
 
-    with status_col:
-        st.markdown("##### Live Personnel & Status")
-        status_placeholder = st.empty()
+        with b_col2:
+            st.markdown("##### Live Personnel & Status")
+            b_status = st.empty()
 
-    # Camera Capture Streaming Loop
-    if run_camera:
-        cap = cv2.VideoCapture(cam_index, cv2.CAP_DSHOW)
-        if not cap or not cap.isOpened():
-            cap = cv2.VideoCapture(cam_index)
-
-        if not cap.isOpened():
-            st.error(f"Unable to access local camera device index {cam_index}.")
-            st.info("💡 **Cloud / Remote Notice**: Cloud hosting environments (Streamlit Cloud, Docker, VPS) do not have direct access to local USB webcams. To test detection remotely, use the **Static Image Inspection** section below.")
-        else:
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-            fps_timer = time.time()
-            frame_count = 0
-            live_fps = 0.0
-
-            try:
-                while run_camera:
-                    ret, frame = cap.read()
-                    if not ret or frame is None:
-                        st.warning("Frame acquisition interrupted.")
-                        break
-
-                    h, w = frame.shape[:2]
-
-                    # 1. AI Object Detection & Real-Time Face Recognition
+        if cam_snap is not None:
+            file_bytes = np.asarray(bytearray(cam_snap.read()), dtype=np.uint8)
+            frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            if frame is not None:
+                h, w = frame.shape[:2]
+                with st.spinner("Analyzing PPE Compliance & Facial Biometrics..."):
                     dets = detector.detect(frame, face_recognizer=face_recognizer)
-
-                    # 2. Worker Multi-Person Tracking
                     tracked = tracker.update(dets["persons"])
 
-                    # 3. Spatial Safety Verification
                     evaluations = []
                     for p in tracked:
                         wid = p["worker_id"]
@@ -741,117 +708,260 @@ elif "Live AI Monitoring" in selected_module:
                                 feet_visible=evaluation["feet_visible"],
                                 worker_name=evaluation.get("worker_name", wid)
                             )
-
                         evaluations.append(evaluation)
-
-                    # 4. Render Annotations
-                    frame_count += 1
-                    now_t = time.time()
-                    if now_t - fps_timer >= 1.0:
-                        live_fps = frame_count / (now_t - fps_timer)
-                        frame_count = 0
-                        fps_timer = now_t
 
                     annotated = annotate_frame(
                         frame,
                         evaluations,
-                        fps=live_fps,
+                        fps=30.0,
                         faces=dets.get("faces", [])
                     )
 
-                    frame_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
-                    video_placeholder.image(frame_rgb, channels="RGB", use_container_width=True)
+                with b_col1:
+                    st.image(cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB), caption="AI Safety & Identification Verdict", use_container_width=True)
 
-                    # Update Status Panel with Human Enterprise Cards
-                    with status_placeholder.container():
-                        if evaluations:
-                            for ev in evaluations:
-                                color_box = STATUS_COLORS[ev["status"]]
-                                pill_class = "status-pill-safe" if ev["status"] == "SAFE" else ("status-pill-alert" if ev["status"] == "NOT_SAFE" else "status-pill-warn")
-                                w_display_name = ev.get("worker_name", ev["worker_id"])
-                                is_recognized_person = ev.get("is_recognized", False)
+                with b_status.container():
+                    if evaluations:
+                        for ev in evaluations:
+                            color_box = STATUS_COLORS[ev["status"]]
+                            pill_class = "status-pill-safe" if ev["status"] == "SAFE" else ("status-pill-alert" if ev["status"] == "NOT_SAFE" else "status-pill-warn")
+                            w_display_name = ev.get("worker_name", ev["worker_id"])
+                            is_recognized_person = ev.get("is_recognized", False)
 
-                                st.markdown(f"""
-                                    <div class="app-card" style="border-left:3px solid {color_box} !important; padding:0.9rem; margin-bottom:0.65rem;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
-                                            <strong style="color:#2C332C; font-size:0.98rem; font-weight:750;">{w_display_name}</strong>
-                                            <span class="{pill_class}">{ev['status']}</span>
-                                        </div>
-                                        <div style="margin-bottom:0.35rem;">
-                                            {'<span class="status-pill-safe">Verified Staff • ' + ev.get("role", "Staff") + '</span>' if is_recognized_person else '<span class="status-pill-alert">Unregistered Visitor</span>'}
-                                        </div>
-                                        <div style="font-size:0.78rem; color:#2C332C; font-weight:600; margin-top:0.25rem;">
-                                            Helmet: <strong style="color:{'#2E7D32' if ev['helmet_status']=='WORN' else '#C66B48'};">{ev['helmet_status']}</strong> • Footwear: <strong style="color:{'#2E7D32' if ev['safety_shoe_status']=='WORN' else ('#C88F35' if ev['safety_shoe_status']=='UNCLEAR' else '#C66B48')};">{ev['safety_shoe_status']}</strong>
-                                        </div>
-                                        <div style="font-size:0.75rem; color:#6B736B; margin-top:0.25rem;">
-                                            {ev['details']}
-                                        </div>
+                            st.markdown(f"""
+                                <div class="app-card" style="border-left:3px solid {color_box} !important; padding:0.9rem; margin-bottom:0.65rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                                        <strong style="color:#2C332C; font-size:0.98rem; font-weight:750;">{w_display_name}</strong>
+                                        <span class="{pill_class}">{ev['status']}</span>
                                     </div>
-                                """, unsafe_allow_html=True)
-                        else:
-                            if dets.get("faces"):
-                                st.markdown(f"""
-                                    <div class="app-card border-accent-alert" style="padding:0.85rem;">
-                                        <div style="color:#C66B48; font-weight:750; font-size:0.88rem;">{len(dets['faces'])} Face(s) Detected</div>
-                                        <div style="font-size:0.78rem; color:#6B736B; margin-top:2px;">Comparing biometrics with registered directory...</div>
+                                    <div style="margin-bottom:0.35rem;">
+                                        {'<span class="status-pill-safe">Verified Staff • ' + ev.get("role", "Staff") + '</span>' if is_recognized_person else '<span class="status-pill-alert">Unregistered Visitor</span>'}
                                     </div>
-                                """, unsafe_allow_html=True)
+                                    <div style="font-size:0.78rem; color:#2C332C; font-weight:600; margin-top:0.25rem;">
+                                        Helmet: <strong style="color:{'#2E7D32' if ev['helmet_status']=='WORN' else '#C66B48'};">{ev['helmet_status']}</strong> • Footwear: <strong style="color:{'#2E7D32' if ev['safety_shoe_status']=='WORN' else ('#C88F35' if ev['safety_shoe_status']=='UNCLEAR' else '#C66B48')};">{ev['safety_shoe_status']}</strong>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:#6B736B; margin-top:0.25rem;">
+                                        {ev['details']}
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No worker body detected. Please ensure your upper body and head are visible.")
+        else:
+            with b_status.container():
+                st.info("Click 'Take Photo' above to run live PPE & facial verification.")
+
+    # -------------------------------------------------------------------------
+    # MODE 2: LOCAL HARDWARE CAMERA (FOR LOCAL LAB WORKSTATIONS)
+    # -------------------------------------------------------------------------
+    elif feed_mode == "💻 Local Hardware Camera (DirectShow / USB Workstation)":
+        st.info("💡 **Local Lab Camera**: Connects to physical USB/RTSP cameras attached to this computer. When running on Streamlit Cloud, switch to **📸 Browser Device Camera** above.")
+
+        ctrl1, ctrl2, ctrl3, ctrl4 = st.columns([1.3, 1.3, 1.5, 1.9])
+        with ctrl1:
+            run_camera = st.toggle("Start Camera Stream", value=False, key="camera_toggle_btn")
+        with ctrl2:
+            capture_btn = st.button("Capture Snapshot", use_container_width=True)
+        with ctrl3:
+            cam_index = st.selectbox(
+                "Camera Device",
+                options=[0, 1, 2],
+                format_func=lambda x: f"Webcam Device {x}",
+                index=int(get_setting("camera_index", "0")),
+                label_visibility="collapsed"
+            )
+        with ctrl4:
+            st.markdown(
+                f"<div style='padding-top:0.4rem; font-size:0.86rem; color:#2C332C;'>Stream Status: <strong style='color:{'#2E7D32' if run_camera else '#6B736B'};'>{'● STREAMING LIVE' if run_camera else '○ CAMERA STANDBY'}</strong></div>",
+                unsafe_allow_html=True
+            )
+
+        video_col, status_col = st.columns([2.2, 1.1])
+        with video_col:
+            video_placeholder = st.empty()
+        with status_col:
+            st.markdown("##### Live Personnel & Status")
+            status_placeholder = st.empty()
+
+        if run_camera:
+            cap = cv2.VideoCapture(cam_index, cv2.CAP_DSHOW)
+            if not cap or not cap.isOpened():
+                cap = cv2.VideoCapture(cam_index)
+
+            if not cap.isOpened():
+                st.error(f"Unable to access local camera device index {cam_index}.")
+                st.info("💡 Cloud hosting environments do not have physical USB webcams. Please switch to **📸 Browser Device Camera** above.")
+            else:
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+                fps_timer = time.time()
+                frame_count = 0
+                live_fps = 0.0
+
+                try:
+                    while run_camera:
+                        ret, frame = cap.read()
+                        if not ret or frame is None:
+                            st.warning("Frame acquisition interrupted.")
+                            break
+
+                        h, w = frame.shape[:2]
+                        dets = detector.detect(frame, face_recognizer=face_recognizer)
+                        tracked = tracker.update(dets["persons"])
+
+                        evaluations = []
+                        for p in tracked:
+                            wid = p["worker_id"]
+                            raw_id = p["raw_id"]
+                            w_name = p.get("worker_name", wid)
+                            w_role = p.get("role", "Technician")
+                            w_dept = p.get("department", "Mechanical Lab")
+                            is_rec = p.get("is_recognized", False)
+
+                            evaluation = verifier.evaluate_worker(
+                                worker_id=wid,
+                                person_box=p["bbox"],
+                                person_confidence=p["confidence"],
+                                helmet_boxes=dets["helmets"],
+                                cap_boxes=dets["caps"],
+                                shoe_boxes=dets["shoes"],
+                                frame_width=w,
+                                frame_height=h,
+                                face_box=p.get("face_box"),
+                                faces=dets.get("faces", []),
+                                worker_name=w_name,
+                                role=w_role,
+                                department=w_dept,
+                                is_recognized=is_rec
+                            )
+
+                            should_record, reason = tracker.should_record(
+                                raw_id=raw_id,
+                                status=evaluation["status"],
+                                stability_score=evaluation["stability_score"],
+                                frames_seen=evaluation["frames_analyzed"]
+                            )
+
+                            if should_record:
+                                add_safety_record(
+                                    worker_id=wid,
+                                    helmet_status=evaluation["helmet_status"],
+                                    safety_shoe_status=evaluation["safety_shoe_status"],
+                                    overall_status=evaluation["status"],
+                                    confidence=evaluation["stability_score"],
+                                    violation_details=evaluation["details"],
+                                    head_visible=evaluation["head_visible"],
+                                    feet_visible=evaluation["feet_visible"],
+                                    worker_name=evaluation.get("worker_name", wid)
+                                )
+
+                            evaluations.append(evaluation)
+
+                        frame_count += 1
+                        now_t = time.time()
+                        if now_t - fps_timer >= 1.0:
+                            live_fps = frame_count / (now_t - fps_timer)
+                            frame_count = 0
+                            fps_timer = now_t
+
+                        annotated = annotate_frame(
+                            frame,
+                            evaluations,
+                            fps=live_fps,
+                            faces=dets.get("faces", [])
+                        )
+
+                        frame_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
+                        video_placeholder.image(frame_rgb, channels="RGB", use_container_width=True)
+
+                        with status_placeholder.container():
+                            if evaluations:
+                                for ev in evaluations:
+                                    color_box = STATUS_COLORS[ev["status"]]
+                                    pill_class = "status-pill-safe" if ev["status"] == "SAFE" else ("status-pill-alert" if ev["status"] == "NOT_SAFE" else "status-pill-warn")
+                                    w_display_name = ev.get("worker_name", ev["worker_id"])
+                                    is_recognized_person = ev.get("is_recognized", False)
+
+                                    st.markdown(f"""
+                                        <div class="app-card" style="border-left:3px solid {color_box} !important; padding:0.9rem; margin-bottom:0.65rem;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                                                <strong style="color:#2C332C; font-size:0.98rem; font-weight:750;">{w_display_name}</strong>
+                                                <span class="{pill_class}">{ev['status']}</span>
+                                            </div>
+                                            <div style="margin-bottom:0.35rem;">
+                                                {'<span class="status-pill-safe">Verified Staff • ' + ev.get("role", "Staff") + '</span>' if is_recognized_person else '<span class="status-pill-alert">Unregistered Visitor</span>'}
+                                            </div>
+                                            <div style="font-size:0.78rem; color:#2C332C; font-weight:600; margin-top:0.25rem;">
+                                                Helmet: <strong style="color:{'#2E7D32' if ev['helmet_status']=='WORN' else '#C66B48'};">{ev['helmet_status']}</strong> • Footwear: <strong style="color:{'#2E7D32' if ev['safety_shoe_status']=='WORN' else ('#C88F35' if ev['safety_shoe_status']=='UNCLEAR' else '#C66B48')};">{ev['safety_shoe_status']}</strong>
+                                            </div>
+                                            <div style="font-size:0.75rem; color:#6B736B; margin-top:0.25rem;">
+                                                {ev['details']}
+                                            </div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
                             else:
-                                st.info("No active personnel detected in current camera frame.")
+                                if dets.get("faces"):
+                                    st.markdown(f"""
+                                        <div class="app-card border-accent-alert" style="padding:0.85rem;">
+                                            <div style="color:#C66B48; font-weight:750; font-size:0.88rem;">{len(dets['faces'])} Face(s) Detected</div>
+                                            <div style="font-size:0.78rem; color:#6B736B; margin-top:2px;">Comparing biometrics with registered directory...</div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                else:
+                                    st.info("No active personnel detected in current camera frame.")
 
-                    if capture_btn:
-                        cap_path = config.RECORDS_DIR / f"capture_{int(time.time())}.jpg"
-                        cv2.imwrite(str(cap_path), frame)
-                        st.sidebar.success(f"Captured: {cap_path.name}")
+                        if capture_btn:
+                            cap_path = config.RECORDS_DIR / f"capture_{int(time.time())}.jpg"
+                            cv2.imwrite(str(cap_path), frame)
+                            st.sidebar.success(f"Captured: {cap_path.name}")
 
-                    time.sleep(0.02)
-            finally:
-                cap.release()
+                        time.sleep(0.02)
+                finally:
+                    cap.release()
+        else:
+            standby_img = np.zeros((480, 640, 3), dtype=np.uint8)
+            standby_img[:] = (32, 38, 32)
+            margin = 40
+            corner_len = 30
+            c_color = (80, 100, 80)
+            cv2.line(standby_img, (margin, margin), (margin + corner_len, margin), c_color, 2)
+            cv2.line(standby_img, (margin, margin), (margin, margin + corner_len), c_color, 2)
+            cv2.line(standby_img, (640 - margin, margin), (640 - margin - corner_len, margin), c_color, 2)
+            cv2.line(standby_img, (640 - margin, margin), (640 - margin, margin + corner_len), c_color, 2)
+            cv2.line(standby_img, (margin, 480 - margin), (margin + corner_len, 480 - margin), c_color, 2)
+            cv2.line(standby_img, (margin, 480 - margin), (margin, 480 - margin - corner_len), c_color, 2)
+            cv2.line(standby_img, (640 - margin, 480 - margin), (640 - margin - corner_len, 480 - margin), c_color, 2)
+            cv2.line(standby_img, (640 - margin, 480 - margin), (640 - margin, 480 - margin - corner_len), c_color, 2)
+
+            cv2.putText(
+                standby_img,
+                "CAMERA FEED INACTIVE",
+                (195, 230),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.68,
+                (225, 230, 225),
+                2,
+                cv2.LINE_AA
+            )
+            cv2.putText(
+                standby_img,
+                "Toggle 'Start Camera Stream' above to begin real-time monitoring",
+                (100, 265),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.46,
+                (150, 165, 150),
+                1,
+                cv2.LINE_AA
+            )
+            video_placeholder.image(cv2.cvtColor(standby_img, cv2.COLOR_BGR2RGB), use_container_width=True)
+            status_placeholder.info("Camera is on standby. Activate stream to begin monitoring.")
+
+    # -------------------------------------------------------------------------
+    # MODE 3: STATIC PHOTO & BENCHMARK INSPECTION
+    # -------------------------------------------------------------------------
     else:
-        # Professional Industrial Standby Canvas
-        standby_img = np.zeros((480, 640, 3), dtype=np.uint8)
-        standby_img[:] = (32, 38, 32)  # Refined dark slate olive
-
-        # Viewfinder Reticle Corners
-        margin = 40
-        corner_len = 30
-        c_color = (80, 100, 80)
-        cv2.line(standby_img, (margin, margin), (margin + corner_len, margin), c_color, 2)
-        cv2.line(standby_img, (margin, margin), (margin, margin + corner_len), c_color, 2)
-        cv2.line(standby_img, (640 - margin, margin), (640 - margin - corner_len, margin), c_color, 2)
-        cv2.line(standby_img, (640 - margin, margin), (640 - margin, margin + corner_len), c_color, 2)
-        cv2.line(standby_img, (margin, 480 - margin), (margin + corner_len, 480 - margin), c_color, 2)
-        cv2.line(standby_img, (margin, 480 - margin), (margin, 480 - margin - corner_len), c_color, 2)
-        cv2.line(standby_img, (640 - margin, 480 - margin), (640 - margin - corner_len, 480 - margin), c_color, 2)
-        cv2.line(standby_img, (640 - margin, 480 - margin), (640 - margin, 480 - margin - corner_len), c_color, 2)
-
-        cv2.putText(
-            standby_img,
-            "CAMERA FEED INACTIVE",
-            (195, 230),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.68,
-            (225, 230, 225),
-            2,
-            cv2.LINE_AA
-        )
-        cv2.putText(
-            standby_img,
-            "Toggle 'Start Camera Stream' above to begin real-time monitoring",
-            (100, 265),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.46,
-            (150, 165, 150),
-            1,
-            cv2.LINE_AA
-        )
-        video_placeholder.image(cv2.cvtColor(standby_img, cv2.COLOR_BGR2RGB), use_container_width=True)
-        status_placeholder.info("Camera is on standby. Activate stream to begin real-time worker safety monitoring.")
-
-    # Static Image Scanner Container
-    st.markdown("---")
-    with st.expander("Static Image Inspection (Upload & Test File)", expanded=False):
-        st.caption("Inspect photograph files for PPE compliance verification and facial biometrics.")
+        st.caption("Upload image files or run standard benchmarks to verify PPE compliance.")
 
         up_col1, up_col2 = st.columns([1.5, 1.0])
         with up_col1:
