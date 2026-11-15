@@ -1048,7 +1048,9 @@ elif "Face Recognition & Registration" in selected_module:
 
         if captured_bgr is not None:
             gray = cv2.cvtColor(captured_bgr, cv2.COLOR_BGR2GRAY)
-            faces = detector.face_cascade.detectMultiScale(gray, 1.1, 4, minSize=(40, 40))
+            faces = []
+            if detector.face_cascade is not None and not detector.face_cascade.empty():
+                faces = detector.face_cascade.detectMultiScale(gray, 1.1, 4, minSize=(40, 40))
             if len(faces) > 0:
                 fx, fy, fw, fh = faces[0]
                 preview_img = captured_bgr.copy()

@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import tempfile
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 import numpy as np
 import cv2
@@ -46,8 +47,20 @@ class SafetyDetector:
         self.last_inference_ms = 0.0
         self.classes = config.CLASSES
 
-        # Initialize high-speed facial scanner for direct human face identification
-        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        # Initialize high-speed facial scanner with robust multi-tier path resolution
+        cascade_path = None
+        local_model = Path(__file__).resolve().parent.parent / "models" / "haarcascade_frontalface_default.xml"
+        if local_model.exists():
+            cascade_path = str(local_model)
+        elif hasattr(cv2, "data") and hasattr(cv2.data, "haarcascades") and cv2.data.haarcascades:
+            cand = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+            if os.path.exists(cand):
+                cascade_path = cand
+
+        if cascade_path and os.path.exists(cascade_path):
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
+        else:
+            self.face_cascade = cv2.CascadeClassifier()
 
         # Load weights
         self.load_model(model_path)
